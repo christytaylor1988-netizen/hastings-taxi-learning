@@ -1,0 +1,16 @@
+{
+  "id": "./learn.html",
+  "name": "The Knowledge — Hastings Taxi Learning",
+  "short_name": "The Knowledge",
+  "description": "Short lessons for Hastings and St Leonards taxi knowledge. Provisional study data.",
+  "lang": "en-GB",
+  "start_url": "./learn.html",
+  "scope": "./learn.html",
+  "display": "standalone",
+  "background_color": "#f6f7f3",
+  "theme_color": "#f6f7f3",
+  "icons": [
+    { "src": "learn-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "learn-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
