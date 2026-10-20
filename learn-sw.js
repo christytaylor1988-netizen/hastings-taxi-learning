@@ -3,11 +3,56 @@
 // Bump this version whenever a cached learning file changes. Updates wait until
 // existing learning tabs close, so a lesson never swaps scripts halfway through.
 const PREFIX = 'hastings-learning-offline-';
-const CACHE = PREFIX + 'v4-verification-mobile';
+const CACHE = PREFIX + 'v5-multisubject-20261020';
 const FILES = [
-  'learn.html', 'locations.js', 'learn-engine.js', 'learn-app.js',
-  'learn-pwa.js', 'learn-batch02.js', 'learn-full-audit.js', 'learn-full-report.html', 'learn-expansion02-report.html', 'learn.webmanifest',
-  'learn-icon-180.png', 'learn-icon-192.png', 'learn-icon-512.png'
+  "appendices-data.js",
+  "appendices-report.html",
+  "attribution.json",
+  "sign-ahead.jpg",
+  "sign-cycle-route.jpg",
+  "sign-dual-end.jpg",
+  "sign-either.jpg",
+  "sign-entry.jpg",
+  "sign-give-way.jpg",
+  "sign-left.jpg",
+  "sign-mini.jpg",
+  "sign-narrows.jpg",
+  "sign-national.jpg",
+  "sign-no-cycle.jpg",
+  "sign-no-left.jpg",
+  "sign-no-motor.jpg",
+  "sign-no-right.jpg",
+  "sign-no-u.jpg",
+  "sign-overtake.jpg",
+  "sign-priority.jpg",
+  "sign-stop.jpg",
+  "sign-stopping.jpg",
+  "sign-waiting.jpg",
+  "Hastings-Taxi-Policy-checked-2026-10-20.pdf",
+  "index.html",
+  "learn-app.js",
+  "learn-batch02.js",
+  "learn-engine.js",
+  "learn-expansion02-report.html",
+  "learn-full-audit.js",
+  "learn-full-report.html",
+  "learn-icon-180.png",
+  "learn-icon-192.png",
+  "learn-icon-512.png",
+  "learn-pwa.js",
+  "learn.html",
+  "learn.webmanifest",
+  "local-knowledge.html",
+  "locations.js",
+  "mock-alignment-data.js",
+  "mock-comparison.html",
+  "progress-backup.html",
+  "progress-export.js",
+  "study-app.js",
+  "study-base.css",
+  "study-engine.js",
+  "study.css",
+  "subjects-data.js"
 ];
 const URLS = FILES.map(file => new URL(file, self.location.href).href);
 const ALLOWED = new Set(URLS);
@@ -24,7 +69,7 @@ self.addEventListener('activate', event => {
     const names = await caches.keys();
     await Promise.all(names.filter(name => name.startsWith(PREFIX) && name !== CACHE)
       .map(name => caches.delete(name)));
-    // Registration is limited to learn.html; other revision pages stay outside it.
+    // This dedicated repository contains only the learning app.
     await self.clients.claim();
   })());
 });

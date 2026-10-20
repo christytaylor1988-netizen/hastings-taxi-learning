@@ -1,0 +1,26 @@
+{
+  "credit": "Traffic sign images: Department for Transport, The Highway Code. Crown copyright, Open Government Licence v3.0.",
+  "licence": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+  "sources": {
+    "national": "https://assets.digital.cabinet-office.gov.uk/media/55b9f2f740f0b6151c00001d/sign-giving-order-national-speed-limit.jpg",
+    "stop": "https://assets.digital.cabinet-office.gov.uk/media/55b9f330e5274a151e000022/sign-giving-order-stop-give-way.jpg",
+    "entry": "https://assets.digital.cabinet-office.gov.uk/media/55b9f41b40f0b6151f000019/sign-giving-order-no-entry-vehicular-traffic.jpg",
+    "left": "https://assets.digital.cabinet-office.gov.uk/media/55ba123bed915d155c000019/sign-giving-order-keep-left.jpg",
+    "give-way": "https://assets.digital.cabinet-office.gov.uk/media/55b9f373ed915d155f00001e/sign-giving-order-give-way.jpg",
+    "no-cycle": "https://assets.digital.cabinet-office.gov.uk/media/55b9f4a5ed915d155c00000f/sign-giving-order-no-cycling.jpg",
+    "no-motor": "https://assets.digital.cabinet-office.gov.uk/media/55b9f4d840f0b6151f00001b/sign-giving-order-no-motor-vehicles.jpg",
+    "overtake": "https://assets.digital.cabinet-office.gov.uk/media/55b9f50240f0b6151c000021/sign-giving-order-no-overtaking.jpg",
+    "priority": "https://assets.digital.cabinet-office.gov.uk/media/55b9f637e5274a151e000026/sign-giving-order-give-priority-vehicles.jpg",
+    "no-right": "https://assets.digital.cabinet-office.gov.uk/media/55b9f66fe5274a151e000028/sign-giving-order-no-right-turn.jpg",
+    "no-left": "https://assets.digital.cabinet-office.gov.uk/media/55b9f68740f0b6151f000021/sign-giving-order-no-left-turn.jpg",
+    "no-u": "https://assets.digital.cabinet-office.gov.uk/media/55b9f6aded915d155f000024/sign-giving-order-no-u-turn.jpg",
+    "waiting": "https://assets.digital.cabinet-office.gov.uk/media/55ba00a140f0b6151f000025/sign-giving-order-no-waiting.jpg",
+    "stopping": "https://assets.digital.cabinet-office.gov.uk/media/55ba00b540f0b6151c000027/sign-giving-order-no-stopping.jpg",
+    "ahead": "https://assets.digital.cabinet-office.gov.uk/media/55cb16d9e5274a5473000021/sign-giving-order-ahead-only.jpg",
+    "either": "https://assets.digital.cabinet-office.gov.uk/media/55ba124eed915d155c00001b/sign-giving-order-vehicle-pass-either-side.jpg",
+    "mini": "https://assets.digital.cabinet-office.gov.uk/media/55ba126540f0b6151c00002b/sign-giving-order-mini-roundabout.jpg",
+    "cycle-route": "https://assets.digital.cabinet-office.gov.uk/media/55ba1284e5274a1521000023/sign-giving-order-route-pedal-cycles-only.jpg",
+    "dual-end": "https://assets.digital.cabinet-office.gov.uk/media/55b75e47e5274a215200000c/warning-sign-dual-carriageway-ends.jpg",
+    "narrows": "https://assets.digital.cabinet-office.gov.uk/media/55b75f15ed915d07fe000007/warning-sign-road-narrow-both-sides.jpg"
+  }
+}

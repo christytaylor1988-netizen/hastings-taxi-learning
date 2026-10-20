@@ -32,9 +32,16 @@
   // Check the installed worker even if an offline update check cannot reach the server.
   checkReady();
   navigator.serviceWorker.register(workerURL, {
-    scope: new URL('learn.html', location.href).href,
+    scope: new URL('./', location.href).href,
     updateViaCache: 'none'
-  }).then(checkReady).catch(() => {
+  }).then(async () => {
+    // Refresh the legacy page-scoped registration as well as the new app scope.
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const registration of registrations) {
+      if (registration.active?.scriptURL === workerURL) registration.update().catch(() => {});
+    }
+    checkReady();
+  }).catch(() => {
     // The normal game stays usable if caching is blocked or unavailable.
     checkReady();
   });
