@@ -3,10 +3,10 @@
 // Bump this version whenever a cached learning file changes. Updates wait until
 // existing learning tabs close, so a lesson never swaps scripts halfway through.
 const PREFIX = 'hastings-learning-offline-';
-const CACHE = PREFIX + 'hosted-v1';
+const CACHE = PREFIX + 'hosted-v1-backup-ready';
 const FILES = [
   'learn.html', 'locations.js', 'learn-engine.js', 'learn-app.js',
-  'learn-pwa.js', 'learn.webmanifest',
+  'learn-pwa.js', 'progress-export.js', 'learn.webmanifest',
   'learn-icon-180.png', 'learn-icon-192.png', 'learn-icon-512.png'
 ];
 const URLS = FILES.map(file => new URL(file, self.location.href).href);
