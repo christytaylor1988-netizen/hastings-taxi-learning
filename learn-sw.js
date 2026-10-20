@@ -3,7 +3,7 @@
 // Bump this version whenever a cached learning file changes. Updates wait until
 // existing learning tabs close, so a lesson never swaps scripts halfway through.
 const PREFIX = 'hastings-learning-offline-';
-const CACHE = PREFIX + 'v5-multisubject-20261020';
+const CACHE = PREFIX + 'v6-unlocked-local-20261020';
 const FILES = [
   "appendices-data.js",
   "appendices-report.html",

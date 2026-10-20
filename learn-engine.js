@@ -128,8 +128,25 @@
     if (wrong.length !== 3) throw new Error('Not enough distinct road choices.');
     return shuffle([item.road, ...wrong], rng);
   }
+  function lessonKey(options = {}) {
+    if (options.mode === 'batch') return 'batch:' + options.batch;
+    if (options.mode === 'category') return 'category:' + options.category;
+    return options.mode === 'review' ? 'review' : 'mixed';
+  }
   function begin(state, bank, rng = Math.random, options = {}) {
-    if (state.active) return state.active;
+    const key = lessonKey(options);
+    if (state.active && lessonKey(state.active) === key) return state.active;
+    // Keep the exact questions, answers and cursor when changing study focus.
+    if (state.active && !state.active.completed) {
+      state.pausedLessons ||= {};
+      state.pausedLessons[lessonKey(state.active)] = state.active;
+    }
+    state.active = null;
+    if (state.pausedLessons?.[key]) {
+      state.active = state.pausedLessons[key];
+      delete state.pausedLessons[key];
+      return state.active;
+    }
     const available = eligible(state, bank, options);
     const length = Math.min(LENGTH, available.length);
     if (!length) return null;
@@ -179,6 +196,16 @@
     for (const [id, s] of Object.entries(state.stats)) {
       if (!ids.has(id) || !s || !['seen', 'correct', 'wrong', 'streak'].every(k => integer(s[k])) ||
         s.seen !== s.correct + s.wrong || s.streak > s.correct || !['correct', 'wrong'].includes(s.lastResult)) return false;
+    }
+    if (state.pausedLessons !== undefined) {
+      const paused = state.pausedLessons;
+      if (!paused || typeof paused !== 'object' || Array.isArray(paused)) return false;
+      const allowed = new Set(['mixed', 'review', ...bank.map(x => 'category:' + x.learningCategory),
+        ...bank.flatMap(x => x.sourceRecords.map(n => 'batch:' + Math.floor((n - 1) / 25)))]);
+      for (const [key, lesson] of Object.entries(paused)) {
+        if (!allowed.has(key) || !lesson || lesson.completed || lessonKey(lesson) !== key ||
+            !validState({version:1, stats:{}, completed:0, active:lesson}, bank)) return false;
+      }
     }
     const l = state.active;
     if (l === null) return true;
