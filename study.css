@@ -4,3 +4,37 @@
 .study-shell h1[tabindex="-1"]:focus{outline:none}
 
 .appendix-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.appendix-topic{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid #d5dfda;border-radius:14px;text-decoration:none;min-height:64px}.appendix-topic span{font-size:12px;color:#50656b}.appendix-topic[aria-current]{background:#e4eee3}.subject-tile:last-child:nth-child(odd){grid-column:1/-1}@media(max-width:400px){.appendix-grid{grid-template-columns:1fr}}
+
+/* Unified local preview dashboard; existing lesson styles and palettes retained. */
+.home-control{display:inline-flex;align-items:center;justify-content:center;min-height:44px;text-decoration:none}.dashboard-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}.dashboard-heading h1{margin:6px 0 10px}.dashboard-heading p{color:var(--muted)}.subject-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:20px}.subject-shortcut{display:flex;flex-direction:column;justify-content:center;gap:6px;border:1px solid var(--line);background:white;border-radius:14px;padding:13px 14px;min-height:78px;text-decoration:none;font-weight:650;font-size:14px;color:var(--ink)}.subject-shortcut span{font-size:11px;font-weight:400;color:var(--muted)}.subject-shortcut.current{background:#182b32;color:white}.subject-shortcut.current span{color:#dce3df}.subject-shortcut:hover{border-color:var(--green)}.local-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px}.local-heading h2{font-size:23px}.local-heading>span{font-size:12px;color:var(--muted)}#local-dashboard .intro,#local-dashboard .progress-safety,#local-dashboard .notice{display:none}#local-dashboard .home-grid{margin-top:14px}#local-dashboard .start-card{min-height:260px}#local-dashboard .start-card h2{font-size:31px}#local-dashboard .stats-card{padding:24px}#local-dashboard .mode-row{margin:16px 0}.resume-shelf{padding:14px 16px;background:#edf1e7;border-radius:14px;margin-bottom:16px}.resume-shelf summary,.dashboard-backups summary{cursor:pointer;min-height:32px;font-weight:650}.resume-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.resume-links a{display:flex;flex-direction:column;gap:5px;padding:12px;background:white;border:1px solid var(--line);border-radius:10px;text-decoration:none;font-size:14px}.resume-links span{font-size:12px;color:var(--muted)}.dashboard-backups{padding:18px;border:1px solid var(--line);border-radius:16px;margin-top:26px}.dashboard-backups input{max-width:100%}a:focus-visible{outline:3px solid var(--green);outline-offset:3px}#local-focus{scroll-margin-top:18px}
+@media(max-width:700px){.dashboard-heading .tag{display:none}.subject-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.subject-shortcut{min-height:66px;padding:10px 12px}.local-heading{align-items:flex-start;flex-direction:column;gap:5px}.resume-links{grid-template-columns:1fr}#local-dashboard .start-card{min-height:230px}#local-dashboard .home-grid{gap:14px}.dashboard-heading h1{font-size:34px}.study-footer{flex-wrap:wrap}}
+
+#local-dashboard .home-grid{display:none}.dashboard-summary{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 22px;border-radius:18px;background:var(--blue);color:white;margin-bottom:18px}.dashboard-summary p,.summary-position{font-size:13px;color:#e0e6ff;margin-top:8px}.summary-position{display:block}.dashboard-summary .primary{background:#d8ed9b;color:var(--ink);flex-shrink:0;min-height:48px}.dashboard-summary strong{font-size:18px}@media(max-width:700px){.dashboard-summary{flex-direction:column;align-items:stretch;padding:18px;gap:14px}.dashboard-summary .primary{width:100%}#local-dashboard .batch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#local-dashboard .batch-grid .category-card{padding:14px;gap:8px}#local-dashboard .batch-grid strong{font-size:15px}#local-dashboard .batch-grid .category-card>span{font-size:12px}}
+
+/* Focused lessons; shared automatic/manual feedback treatment. */
+.lesson-active .topbar,.lesson-active .study-footer{display:none}
+.lesson-active .study-shell{max-width:800px}
+.lesson-active .study-shell main{padding-top:max(12px,env(safe-area-inset-top));padding-bottom:190px}
+.lesson-active .lesson-shell{max-width:720px;margin:0 auto}
+.lesson-active .lesson-nav{margin-bottom:4px;align-items:center;flex-wrap:wrap;gap:4px 12px}
+.lesson-active .lesson-nav .text-button{font-size:14px}
+.advance-setting{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);min-height:44px;margin-bottom:8px;cursor:pointer}
+.advance-setting input{width:18px;height:18px;accent-color:var(--green)}
+.lesson-active .question-header{margin:16px 0 10px}
+.lesson-active .question-title{font-size:clamp(23px,3.5vw,34px);line-height:1.2;margin:8px 0 16px}
+.lesson-active .answers{gap:9px;margin-top:16px}
+.lesson-active .answer{min-height:56px;padding:12px 14px}
+.lesson-active .answer:disabled{opacity:1}
+.lesson-active .syllabus-warning{font-size:12px;line-height:1.4;margin:10px 0;padding:10px}
+.lesson-active .sign-card{margin:10px auto;padding:6px;width:120px}
+.lesson-active .sign-card img{width:100px;height:100px}
+.lesson-active .feedback{position:fixed;z-index:5;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,760px);box-sizing:border-box;margin:0;border-radius:16px 16px 0 0;padding:14px 18px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px #182b3212;max-height:180px;overflow:auto;background:#e9f3dd}
+.lesson-active .feedback.incorrect{background:#fff0dd}
+.lesson-active .feedback p{font-size:13px;line-height:1.35;margin-top:4px}
+.lesson-active .feedback p.small-note{font-size:11px}
+.lesson-active .feedback #next[hidden]{display:none}
+.lesson-active.manual-advance .feedback{max-height:45vh}
+.lesson-active.manual-advance .study-shell main{padding-bottom:320px}
+@media(max-width:430px){.lesson-active .study-shell{padding:0 14px}.lesson-active .lesson-label{font-size:11px}.lesson-active .answer-key{display:none}.lesson-active .answer{font-size:15px}.lesson-active .question-header{font-size:11px}.lesson-active .lesson-nav{gap:0}.lesson-active .lesson-nav .lesson-label{margin-left:auto}}
+.lesson-active .screen{animation:none;transform:none;opacity:1}
+.lesson-active .feedback{animation:none;opacity:1}

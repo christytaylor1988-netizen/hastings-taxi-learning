@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const app = document.getElementById('app');
+  let app = document.getElementById('app');
   const E = window.HastingsLearning;
   const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let bank, state, screen = 'home', storageBlocked = false;
@@ -28,9 +28,9 @@
       warning('Saved learning progress could not be read. You can practise this session, but it will not be saved. Existing stored data has been left untouched.');
     }
     screen = state.active ? (state.active.completed ? 'results' : 'lesson') : 'home';
-    render();
+    if (app) render();
   } catch (error) {
-    app.innerHTML = '<div class="fatal"><h2>Let’s check the learning files.</h2><p style="margin-top:18px">' + escape(error.message) + '</p><p style="margin-top:12px">Keep learn.html, learn-engine.js, learn-app.js and the original locations.js together, then refresh.</p></div>';
+    if (app) app.innerHTML = '<div class="fatal"><h2>Let’s check the learning files.</h2><p style="margin-top:18px">' + escape(error.message) + '</p><p style="margin-top:12px">Keep learn.html, learn-engine.js, learn-app.js and the original locations.js together, then refresh.</p></div>';
   }
   function save() {
     if (storageBlocked) return;
@@ -38,7 +38,23 @@
     catch (_) { storageBlocked = true; warning('Your browser could not save progress. You can keep practising, but this session may be lost when you close or refresh the page.'); }
   }
   function itemFor(id) { return bank.find(item => item.id === id); }
-  function render(focus = false) {
+  window.HastingsLocalUI = {
+    refresh() {
+      if (storageBlocked) return;
+      const raw = localStorage.getItem(E.KEY);
+      if (raw) { const next = JSON.parse(raw); if (E.validState(next, bank)) state = next; }
+    },
+    mount(target, showHome = true) {
+      app = target;
+      screen = showHome || !state.active ? 'home' : state.active.completed ? 'results' : 'lesson';
+      render(false, true);
+    }
+  };
+  function render(focus = false, mounting = false) {
+    if (window.learningDashboard && !mounting) {
+      if (screen === 'home') { window.learningDashboard(); return; }
+      window.openLocalLesson(); return;
+    }
     if (screen === 'home') home();
     else if (screen === 'results') results();
     else lesson();
@@ -50,7 +66,7 @@
     }
   }
   function start(options) {
-    options ||= state.active ? {mode:state.active.mode || 'mixed', category:state.active.category, batch:state.active.batch} : {};
+    options ||= state.active && !state.active.completed ? {mode:state.active.mode || 'mixed', category:state.active.category, batch:state.active.batch} : {};
     if (state.active?.completed) state.active = null;
     if (!E.begin(state, bank, Math.random, options)) return;
     save(); screen = 'lesson'; render(true);
@@ -99,28 +115,30 @@
     } catch (_) { document.getElementById('export-status').textContent=' Could not read saved storage. Your existing data has not been changed.'; }
   }
   function lesson() {
+    LessonFlow.cancel(); document.body.classList.add('lesson-active');
     const l = state.active, q = l.questions[l.cursor], item = itemFor(q.id);
     const correctRoad = E.expected(q,item);
     const answered = q.answer !== null, correct = q.answer === correctRoad;
     const done = l.cursor + Number(answered);
-    app.innerHTML = `<section class="screen lesson-shell"><div class="lesson-nav"><button id="pause" class="text-button">← Learning home</button><span class="lesson-label">${l.mode === 'batch' ? 'Batch ' + (l.batch + 1) + ' · ' : l.mode === 'review' ? 'Mistake review · ' : ''}${done} of ${l.questions.length} answered</span></div><div class="meter" role="progressbar" aria-label="Lesson progress" aria-valuenow="${done}" aria-valuemin="0" aria-valuemax="${l.questions.length}"><span style="width:${done / l.questions.length * 100}%"></span></div><div class="question-header"><span class="eyebrow">Question ${l.cursor + 1} / ${l.questions.length}</span><span>${escape(item.learningCategory)}</span></div><p class="question-prompt">${item.audit?.roadStatus === 'confirmed' ? 'Which road is this on?' : 'Which answer does your original list give?'}</p><h1 class="question-title">${escape(item.place)}</h1>${item.audit?.learningRoad ? `<p class="syllabus-warning"><strong>Reviewed road correction.</strong> ${correctRoad !== item.road ? 'This saved question keeps its original answer and score. New lessons use the reviewed road; see the note after answering.' : 'This road has been corrected from the original list using address evidence. The council’s current exam wording is still unconfirmed.'}</p>` : ''}${item.audit?.roadStatus !== 'confirmed' ? `<p class="syllabus-warning"><strong>${item.audit?.roadStatus === 'conflict' ? 'Address conflict — syllabus wording retained.' : 'Syllabus answer — confirmation needed.'}</strong> ${escape(item.audit?.structuralNote || 'This answer has not been independently confirmed.')} <a href="learn-full-report.html#record-${item.sourceRecord}" target="_blank" rel="noopener">Review record ${item.sourceRecord}</a></p>` : ''}<div class="answers" role="group" aria-label="Choose one road">${q.choices.map((choice, i) => {
+    app.innerHTML = `<section class="screen lesson-shell"><div class="lesson-nav"><button id="pause" class="text-button">← Back to Learning Home</button><span class="lesson-label">${l.mode === 'batch' ? 'Batch ' + (l.batch + 1) + ' · ' : l.mode === 'review' ? 'Mistake review · ' : ''}${done} of ${l.questions.length} answered</span></div><div class="meter" role="progressbar" aria-label="Lesson progress" aria-valuenow="${done}" aria-valuemin="0" aria-valuemax="${l.questions.length}"><span style="width:${done / l.questions.length * 100}%"></span></div><div class="question-header"><span class="eyebrow">Question ${l.cursor + 1} / ${l.questions.length}</span><span>${escape(item.learningCategory)}</span></div><p class="question-prompt">${item.audit?.roadStatus === 'confirmed' ? 'Which road is this on?' : 'Which answer does your original list give?'}</p><h1 class="question-title">${escape(item.place)}</h1>${item.audit?.learningRoad ? `<p class="syllabus-warning"><strong>Reviewed road correction.</strong> ${correctRoad !== item.road ? 'This saved question keeps its original answer and score. New lessons use the reviewed road; see the note after answering.' : 'This road has been corrected from the original list using address evidence. The council’s current exam wording is still unconfirmed.'}</p>` : ''}${item.audit?.roadStatus !== 'confirmed' ? `<p class="syllabus-warning"><strong>${item.audit?.roadStatus === 'conflict' ? 'Address conflict — syllabus wording retained.' : 'Syllabus answer — confirmation needed.'}</strong> ${escape(item.audit?.structuralNote || 'This answer has not been independently confirmed.')} <a href="learn-full-report.html#record-${item.sourceRecord}" target="_blank" rel="noopener">Review record ${item.sourceRecord}</a></p>` : ''}<div class="answers" role="group" aria-label="Choose one road">${q.choices.map((choice, i) => {
       const right = answered && choice === correctRoad, wrong = answered && choice === q.answer && !correct;
       return `<button class="answer${right ? ' correct' : wrong ? ' wrong' : ''}" data-choice="${i}" ${answered ? 'disabled' : ''}><span class="answer-key" aria-hidden="true">${i + 1}</span><span class="answer-label">${escape(choice)}</span>${right || wrong ? `<span class="answer-status" aria-label="${right ? 'Correct answer' : 'Your incorrect answer'}">${right ? '✓' : '×'}</span>` : ''}</button>`;
-    }).join('')}</div>${answered ? `<div class="feedback ${correct ? '' : 'incorrect'}" role="status"><div><strong>${correct ? 'That’s the one.' : 'A useful one to remember.'}</strong><p>${correct ? escape(correctRoad) : 'Correct road: <b>' + escape(correctRoad) + '</b>'}</p>${correct ? '' : '<p>We’ll bring this place back sooner.</p>'}${item.audit?.note ? '<p><strong>Address note:</strong> ' + escape(item.audit.note) + '</p>' : ''}</div><button id="next" class="primary">${l.cursor === l.questions.length - 1 ? 'See results' : 'Continue'} <span aria-hidden="true">→</span></button></div>` : '<p class="keyboard-hint">Choose a road, or use keys 1–4.</p>'}${note}</section>`;
+    }).join('')}</div>${answered ? `<div class="feedback ${correct ? '' : 'incorrect'}" role="status"><div><strong>${correct ? 'That’s the one.' : 'A useful one to remember.'}</strong><p>${correct ? escape(correctRoad) : 'Correct road: <b>' + escape(correctRoad) + '</b>'}</p>${correct ? '' : '<p>We’ll bring this place back sooner.</p>'}${item.audit?.note ? '<p><strong>Address note:</strong> ' + escape(item.audit.note) + '</p>' : ''}</div><button id="next" class="primary">${l.cursor === l.questions.length - 1 ? 'See results' : 'Continue'} <span aria-hidden="true">→</span></button></div>` : '<p class="keyboard-hint">Choose a road, or use keys 1–4.</p>'}</section>`;
     document.getElementById('pause').onclick = () => { screen = 'home'; render(true); };
     app.querySelectorAll('[data-choice]').forEach(button => button.onclick = () => submit(q.choices[Number(button.dataset.choice)]));
-    if (answered) document.getElementById('next').onclick = next;
+    LessonFlow.bind(answered, next);
   }
   function submit(choice) {
     if (!E.answer(state, bank, choice)) return;
     save(); render();
-    document.getElementById('next')?.focus({ preventScroll: true });
+
   }
   function next() {
     if (!E.advance(state)) return;
     save(); screen = state.active.completed ? 'results' : 'lesson'; render(true);
   }
   function results() {
+    LessonFlow.cancel(); document.body.classList.remove('lesson-active');
     const l = state.active, score = E.score(l, bank), missed = l.questions.length - score;
     app.innerHTML = `<section class="screen result"><div class="result-symbol" aria-hidden="true">✓</div><p class="eyebrow">Lesson complete</p><h1>${score === l.questions.length ? 'Every connection made.' : score >= 7 ? 'Your knowledge is growing.' : 'Every attempt builds a connection.'}</h1><p class="result-sub">${missed ? 'The roads you missed will come back sooner. Take a moment to review them, then keep going.' : 'A clean run. We’ll give these places more space and keep building your confidence.'}</p><div class="score-card"><div class="score-large">${score}<small> / ${l.questions.length}</small></div><div class="score-description"><strong>Correct answers</strong>${missed ? missed + ' to revisit' : 'All correct'}<br>Lesson ${state.completed} completed</div></div><div class="result-actions"><button id="again" class="primary">Next lesson <span aria-hidden="true">→</span></button><button id="home" class="text-button">Back to learning home</button></div><details class="review-list" ${missed ? 'open' : ''}><summary>Review your ${l.questions.length} answers</summary>${l.questions.map(q => {
       const item = itemFor(q.id), correctRoad = E.expected(q,item), ok = q.answer === correctRoad;
@@ -131,8 +149,9 @@
   }
   document.addEventListener('keydown', event => {
     if (screen !== 'lesson' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (window.learningDashboard && location.hash !== '#local-lesson') return;
     const q = state.active.questions[state.active.cursor];
     if (q.answer === null && /^[1-4]$/.test(event.key)) { event.preventDefault(); submit(q.choices[Number(event.key) - 1]); }
-    else if (q.answer !== null && event.key === 'Enter' && document.activeElement?.id !== 'pause') { event.preventDefault(); next(); }
+    else if (q.answer !== null && event.key === 'Enter' && document.activeElement?.id === 'next' && document.body.classList.contains('manual-advance')) { event.preventDefault(); next(); }
   });
 })();
