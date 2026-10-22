@@ -3,7 +3,7 @@
 // Bump this version whenever a cached learning file changes. Updates wait until
 // existing learning tabs close, so a lesson never swaps scripts halfway through.
 const PREFIX = 'hastings-learning-offline-';
-const CACHE = PREFIX + 'v9-approved-learning-home-20261021';
+const CACHE = PREFIX + 'v10-printed-exam-list-20261022-final';
 const FILES = [
   "appendices-data.js",
   "appendices-report.html",
@@ -34,6 +34,9 @@ const FILES = [
   "lesson-flow.js",
   "learn-batch02.js",
   "learn-engine.js",
+  "printed-exam-data.js",
+  "printed-exam-report.html",
+  "progress-safety.js",
   "learn-expansion02-report.html",
   "learn-full-audit.js",
   "learn-full-report.html",

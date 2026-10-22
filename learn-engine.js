@@ -83,7 +83,16 @@
       unique.set(key, {...item, sourceRoad:item.road, road:audit.learningRoad || item.road, id: existing.get(record) || 'source-' + record,
         sourceRecord: record, sourceRecords: [record], learningCategory: categoryFor(item.category), audit});
     });
-    return [...unique.values()].map(item => Object.freeze({...item, sourceRecords:Object.freeze(item.sourceRecords)}));
+    return [...unique.values()].map(item => {
+      const printed = item.sourceRecords.map(record => root.HastingsPrintedExam?.entries.find(x => x.record === record));
+      if (printed.some((p, n) => !p || p.sourcePlace !== source[item.sourceRecords[n]-1].place || p.sourceRoad !== source[item.sourceRecords[n]-1].road)) throw new Error('Printed revision list does not match the original records.');
+      const revision = printed[0], correction = revision.correction;
+      const previousRoad = item.road, road = correction?.road || previousRoad;
+      const acceptedRoads = Object.freeze(revision.acceptedRoads || [road]);
+      const answerHistory = Object.freeze([...new Set([road, previousRoad, item.sourceRoad, ...acceptedRoads])]);
+      const audit = correction ? {...item.audit, roadStatus:'confirmed', learningRoad:road, note:correction.note, checked:'2026-10-22', examAnswerStatus:'Unconfirmed', sources:[...(item.audit.sources || []), correction.url]} : revision.acceptedRoads ? {...item.audit, structuralNote:'The printed sheet lists two roads or sites. New questions ask for one listed road; the other is never an incorrect choice.'} : item.audit;
+      return Object.freeze({...item, road, audit, previousRoad, acceptedRoads, answerHistory, printed:Object.freeze(printed), examPriority:true, sourceRecords:Object.freeze(item.sourceRecords)});
+    });
   }
 
   function shuffle(array, rng = Math.random) {
@@ -108,11 +117,11 @@
     }
     return pool.pop();
   }
-  function choicesFor(item, bank, rng = Math.random) {
-    const seen = new Set([roadKey(item.road)]);
+  function choicesFor(item, bank, rng = Math.random, correctRoad = item.road) {
+    const seen = new Set([roadKey(correctRoad), ...(item.answerHistory || []).map(roadKey)]);
     // Only single roads are used as distractors, never ambiguous alternatives or building-only answers.
     // Exclude every road mentioned by the syllabus AND the audit, including known current-address conflicts.
-    const context = roadKey([item.road, item.sourceRoad, item.audit?.observedAddress || '', item.audit?.note || '', ...(item.audit?.avoidRoads || [])].join(' '));
+    const context = roadKey([item.road, item.sourceRoad, item.audit?.observedAddress || '', item.audit?.note || '', ...(item.acceptedRoads || []), ...item.printed.map(p => p.printedRoad), ...(item.audit?.avoidRoads || [])].join(' '));
     const singleRoad = road => !/\/|\bOR\b|,| - |\b(?:off|opposite|rear of)\b/i.test(road) &&
       (/\b(?:road|rd|street|st|avenue|ave|lane|way|close|drive|parade|place|terrace|crescent|gardens|square|hill|down|ascent|plaza|walk)\.?$/i.test(road) || /^(?:the ridge(?: west)?|white rock|the bourne|marina|mercatoria)$/i.test(road));
     const candidates = shuffle(bank.filter(x => singleRoad(x.road)), rng).sort((a, b) => {
@@ -126,7 +135,11 @@
       if (wrong.length === 3) break;
     }
     if (wrong.length !== 3) throw new Error('Not enough distinct road choices.');
-    return shuffle([item.road, ...wrong], rng);
+    return shuffle([correctRoad, ...wrong], rng);
+  }
+  function questionFor(item, bank, rng = Math.random) {
+    const correctRoad = item.acceptedRoads[Math.floor(rng() * item.acceptedRoads.length)];
+    return {id:item.id, choices:choicesFor(item, bank, rng, correctRoad), correctRoad, answer:null, revision:'2026-10-22'};
   }
   function lessonKey(options = {}) {
     if (options.mode === 'batch') return 'batch:' + options.batch;
@@ -157,7 +170,7 @@
     const pool = available.filter(item => !used.has(item.id));
     while (selected.length < length) selected.push(weightedPick(pool, state.stats, rng));
     state.active = {
-      questions: shuffle(selected, rng).map(item => ({ id: item.id, choices: choicesFor(item, bank, rng), correctRoad:item.road, answer: null })),
+      questions: shuffle(selected, rng).map(item => questionFor(item, bank, rng)),
       cursor: 0, completed: false, mode: options.mode || 'mixed', category: options.category || null, batch: Number.isInteger(options.batch) ? options.batch : null
     };
     return state.active;
@@ -214,12 +227,12 @@
     return l.questions.every((q, index) => {
       const item = bank.find(x => x.id === q?.id);
       return item && Array.isArray(q.choices) && q.choices.length === 4 &&
-        q.choices.every(c => typeof c === 'string' && bank.some(b => b.road === c || b.sourceRoad === c)) &&
-        new Set(q.choices.map(roadKey)).size === 4 && (q.correctRoad === undefined || [item.road, item.sourceRoad].includes(q.correctRoad)) && q.choices.includes(expected(q,item)) &&
+        q.choices.every(c => typeof c === 'string' && bank.some(b => b.answerHistory.includes(c))) &&
+        new Set(q.choices.map(roadKey)).size === 4 && (q.correctRoad === undefined || item.answerHistory.includes(q.correctRoad)) && q.choices.includes(expected(q,item)) &&
         (q.answer === null || q.choices.includes(q.answer)) &&
         (index >= l.cursor || q.answer !== null) && (index <= l.cursor || q.answer === null) &&
         (!l.completed || (l.cursor === l.questions.length - 1 && q.answer !== null));
     });
   }
-  root.HastingsLearning = Object.freeze({ KEY, LENGTH, expected, needsReview, eligible, createBank, roadKey, shuffle, emptyState, weight, choicesFor, begin, answer, advance, score, validState });
+  root.HastingsLearning = Object.freeze({ KEY, LENGTH, expected, needsReview, eligible, createBank, roadKey, shuffle, emptyState, weight, choicesFor, questionFor, begin, answer, advance, score, validState });
 })(globalThis);
