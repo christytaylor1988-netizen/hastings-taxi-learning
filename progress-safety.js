@@ -1,7 +1,8 @@
 /* Runs before either learning app. It copies raw values and never rewrites progress. */
 (function (root) {
   'use strict';
-  const KEY = 'hastingsPrintedExam.beforeUpdate.2026-10-22';
+  const PREVIOUS_KEY = 'hastingsPrintedExam.beforeUpdate.2026-10-22';
+  const KEY = 'hastingsPrintedExam.beforeBatchIntegration.2026-10-22';
   let ready = false;
   try {
     const existing = localStorage.getItem(KEY);
@@ -22,5 +23,5 @@
       ready = localStorage.getItem(KEY) === raw;
     }
   } catch (_) { /* Both apps refuse further writes until a safety copy is possible. */ }
-  root.HastingsProgressSafety = Object.freeze({ KEY, ready });
+  root.HastingsProgressSafety = Object.freeze({ KEY, PREVIOUS_KEY, ready });
 })(window);

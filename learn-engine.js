@@ -58,7 +58,9 @@
   function needsReview(stat) { return !!stat && stat.wrong > 0 && stat.streak < 3; }
   function eligible(state, bank, options = {}) {
     if (options.mode === 'category') return bank.filter(x => x.learningCategory === options.category);
-    if (options.mode === 'batch') return bank.filter(x => x.sourceRecords.some(n => Math.floor((n - 1) / 25) === options.batch));
+    // A repeated printed entry belongs to its first batch only. IDs and saved
+    // lessons are unchanged, including older lessons spanning repeated entries.
+    if (options.mode === 'batch') return bank.filter(x => Math.floor((x.sourceRecord - 1) / 25) === options.batch);
     if (options.mode === 'review') return bank.filter(x => needsReview(state.stats[x.id]));
     return bank;
   }
@@ -87,12 +89,46 @@
       const printed = item.sourceRecords.map(record => root.HastingsPrintedExam?.entries.find(x => x.record === record));
       if (printed.some((p, n) => !p || p.sourcePlace !== source[item.sourceRecords[n]-1].place || p.sourceRoad !== source[item.sourceRecords[n]-1].road)) throw new Error('Printed revision list does not match the original records.');
       const revision = printed[0], correction = revision.correction;
-      const previousRoad = item.road, road = correction?.road || previousRoad;
+      const previousRoad = correction?.road || item.road;
+      const road = revision.printedRoad || previousRoad;
       const acceptedRoads = Object.freeze(revision.acceptedRoads || [road]);
-      const answerHistory = Object.freeze([...new Set([road, previousRoad, item.sourceRoad, ...acceptedRoads])]);
-      const audit = correction ? {...item.audit, roadStatus:'confirmed', learningRoad:road, note:correction.note, checked:'2026-10-22', examAnswerStatus:'Unconfirmed', sources:[...(item.audit.sources || []), correction.url]} : revision.acceptedRoads ? {...item.audit, structuralNote:'The printed sheet lists two roads or sites. New questions ask for one listed road; the other is never an incorrect choice.'} : item.audit;
-      return Object.freeze({...item, road, audit, previousRoad, acceptedRoads, answerHistory, printed:Object.freeze(printed), examPriority:true, sourceRecords:Object.freeze(item.sourceRecords)});
+      const answerHistory = Object.freeze([...new Set([road, previousRoad, item.road, item.sourceRoad, ...acceptedRoads])]);
+      const audit = correction ? {...item.audit, roadStatus:'confirmed', learningRoad:previousRoad, note:correction.note, checked:'2026-10-22', examAnswerStatus:'Unconfirmed', sources:[...(item.audit.sources || []), correction.url]} : item.audit;
+      const differs = roadKey(road) !== roadKey(previousRoad) && !revision.acceptedRoads;
+      const answerStatus = !revision.printedRoad ? 'missing' : audit.roadStatus === 'conflict' || (differs && audit.learningRoad) ? 'conflict' : differs ? 'unconfirmed' : audit.roadStatus;
+      return Object.freeze({...item, road, audit, previousRoad, acceptedRoads, answerHistory, answerStatus, displayName:revision.printedName,
+        printed:Object.freeze(printed), examPriority:true, sourceRecords:Object.freeze(item.sourceRecords)});
     });
+  }
+
+  function batches(bank) {
+    const count = Math.ceil(Math.max(...bank.flatMap(i => i.sourceRecords)) / 25);
+    return Array.from({length:count}, (_,batch) => ({batch, items:eligible(null,bank,{mode:'batch',batch}), first:batch*25+1,
+      last:Math.min((batch+1)*25,Math.max(...bank.flatMap(i => i.sourceRecords)))}));
+  }
+  function batchProgress(state, items) {
+    const mastered = items.filter(i => state.stats[i.id]?.streak >= 3).length;
+    return {mastered, total:items.length, seen:items.filter(i => state.stats[i.id]?.seen).length,
+      revise:items.filter(i => needsReview(state.stats[i.id])).length, complete:mastered===items.length};
+  }
+  function nextBatch(state, bank) {
+    return batches(bank).find(b => !batchProgress(state,b.items).complete)?.batch ?? 0;
+  }
+  function answerNotice(item) {
+    if (item.answerStatus === 'missing') return 'No road is printed for this entry. This supplementary address is from the earlier review; confirm the exam answer.';
+    if (item.answerStatus === 'conflict') return 'Printed answer retained. Address evidence differs; confirm the expected exam answer.';
+    if (item.answerStatus !== 'confirmed') return 'Printed answer; the address has not been independently confirmed.';
+    return '';
+  }
+  function questionPrompt(item, answer) {
+    if (!item.acceptedRoads.includes(answer)) return 'Which road was used in this saved question?';
+    if (item.acceptedRoads.length > 1) return 'Which is one of the roads on your printed list?';
+    return item.answerStatus === 'missing' ? 'Which supplementary road is used for this place?' : 'Which road does your printed list give?';
+  }
+  function addressNote(item) {
+    if (item.audit.learningRoad && roadKey(item.road) !== roadKey(item.previousRoad))
+      return 'Earlier address evidence gives ' + item.previousRoad + '. New questions follow the printed sheet; confirm the expected exam wording. Full evidence is retained in the address notes.';
+    return item.audit.note;
   }
 
   function shuffle(array, rng = Math.random) {
@@ -139,7 +175,7 @@
   }
   function questionFor(item, bank, rng = Math.random) {
     const correctRoad = item.acceptedRoads[Math.floor(rng() * item.acceptedRoads.length)];
-    return {id:item.id, choices:choicesFor(item, bank, rng, correctRoad), correctRoad, answer:null, revision:'2026-10-22'};
+    return {id:item.id, choices:choicesFor(item, bank, rng, correctRoad), correctRoad, answer:null, revision:'printed-batches-v1'};
   }
   function lessonKey(options = {}) {
     if (options.mode === 'batch') return 'batch:' + options.batch;
@@ -168,7 +204,14 @@
     const selected = missed.slice(0, Math.min(5, length));
     const used = new Set(selected.map(item => item.id));
     const pool = available.filter(item => !used.has(item.id));
-    while (selected.length < length) selected.push(weightedPick(pool, state.stats, rng));
+    while (selected.length < length) {
+      // In batches, see every place before repeating already practised ones,
+      // then build mastery. The reserved mistake slots still return sooner.
+      const unseen = options.mode === 'batch' ? pool.filter(i => !state.stats[i.id]?.seen) : [];
+      const learning = options.mode === 'batch' ? pool.filter(i => !(state.stats[i.id]?.streak >= 3)) : [];
+      const item = weightedPick(unseen.length ? unseen : learning.length ? learning : [...pool], state.stats, rng);
+      selected.push(item); pool.splice(pool.indexOf(item),1);
+    }
     state.active = {
       questions: shuffle(selected, rng).map(item => questionFor(item, bank, rng)),
       cursor: 0, completed: false, mode: options.mode || 'mixed', category: options.category || null, batch: Number.isInteger(options.batch) ? options.batch : null
@@ -176,7 +219,7 @@
     return state.active;
   }
   // Old saved questions were generated with the original syllabus answer.
-  // Preserve their grading; only newly created questions use reviewed corrections.
+  // Preserve their grading; only newly created questions use printed answers.
   function expected(q, item) { return q.correctRoad || item.sourceRoad || item.road; }
   function answer(state, bank, choice) {
     const lesson = state.active;
@@ -234,5 +277,5 @@
         (!l.completed || (l.cursor === l.questions.length - 1 && q.answer !== null));
     });
   }
-  root.HastingsLearning = Object.freeze({ KEY, LENGTH, expected, needsReview, eligible, createBank, roadKey, shuffle, emptyState, weight, choicesFor, questionFor, begin, answer, advance, score, validState });
+  root.HastingsLearning = Object.freeze({ KEY, LENGTH, expected, needsReview, eligible, createBank, batches, batchProgress, nextBatch, answerNotice, questionPrompt, addressNote, roadKey, shuffle, emptyState, weight, choicesFor, questionFor, begin, answer, advance, score, validState });
 })(globalThis);
