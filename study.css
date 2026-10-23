@@ -48,3 +48,10 @@
 .batch-places li div span{font-size:12px;color:var(--muted)}
 #category-section{margin:20px 0}#category-section summary{cursor:pointer;min-height:44px;font-weight:650}#category-section .category-grid{margin-top:12px}
 @media(max-width:430px){#local-dashboard .batch-grid{grid-template-columns:1fr}.batch-places li{flex-direction:column;gap:4px}}
+
+/* Local Knowledge Mock Test uses the existing visual language. */
+.local-mock-entry{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:20px 22px;margin:20px 0;border:1px solid var(--line);border-radius:16px;background:#edf1e7;text-decoration:none;color:var(--ink)}
+.local-mock-entry span{font-size:13px}.mock-record{display:flex;justify-content:space-between;gap:20px;margin:24px 0}.mock-record>div{display:flex;flex-direction:column;gap:10px}.mock-record strong{font-size:22px}
+.mock-history{list-style:none;padding:0}.mock-history a{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);text-decoration:none}.mock-history a>span{display:flex;flex-direction:column;gap:6px}.mock-history a>span>span{font-size:12px;color:var(--muted)}
+.answer.mock-selected{border-color:var(--blue);background:#eef1ff;box-shadow:0 0 0 1px var(--blue)}.mock-selection{margin-left:auto;font-size:12px;font-weight:600}.mock33-active .study-shell main{padding-bottom:36px}.mock33-active .study-actions{justify-content:space-between;margin-top:20px}.mock-outcome.mock-pass{color:#416426}.mock-outcome.mock-fail{color:#9b3b22}
+@media(max-width:600px){.local-mock-entry,.mock-record,.mock-history a{align-items:flex-start;flex-direction:column}.mock-history a{gap:8px}.mock-selection{font-size:11px}}
