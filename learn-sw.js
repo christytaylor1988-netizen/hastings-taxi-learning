@@ -3,7 +3,7 @@
 // Bump this version whenever a cached learning file changes. Updates wait until
 // existing learning tabs close, so a lesson never swaps scripts halfway through.
 const PREFIX = 'hastings-learning-offline-';
-const CACHE = PREFIX + 'v12-local-mock33-20261023';
+const CACHE = PREFIX + 'v13-weak-spots-20261023';
 const FILES = [
   "appendices-data.js",
   "appendices-report.html",
@@ -33,6 +33,8 @@ const FILES = [
   "learn-app.js",
   "local-mock33-engine.js",
   "local-mock33-app.js",
+  "weak-spots-engine.js",
+  "weak-spots-app.js",
   "lesson-flow.js",
   "learn-batch02.js",
   "learn-engine.js",
